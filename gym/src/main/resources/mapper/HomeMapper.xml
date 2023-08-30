@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.home">
+	<select id="list" resultType="com.gym.dto.HomeDTO">
+		SELECT * FROM tbl_gym WHERE state = 1
+	</select>
+	
+	<select id="view" resultType="com.gym.dto.HomeDTO">
+		SELECT * FROM tbl_gym WHERE id=#{id}
+	</select>
+	
+	<select id="search" resultType="com.gym.dto.HomeDTO">
+		SELECT * FROM tbl_gym 
+		WHERE 
+			address_1 LIKE CONCAT('%', #{keyword}, '%') AND state = 1
+		OR 
+			name LIKE CONCAT('%', #{keyword}, '%') AND state = 1
+	</select>
+	<select id="searchGym" resultType="com.gym.dto.HomeDTO">
+		SELECT * FROM tbl_gym
+		WHERE 
+			`type` = #{gym} AND state = 1;
+	</select>
+	
+	<select id="host_gym" resultType="com.gym.dto.HomeDTO">
+		SELECT * FROM tbl_gym
+		WHERE 
+			id=#{id} AND state = 1
+	</select>
+	
+	<insert id="host_gym_insert">
+		INSERT INTO tbl_gym (host_user_id,`type`,people_num, open_time, close_time, name, img, info, address_1, address_2, x_geo, y_geo, price, created_at)
+		VALUES (
+			#{host_user_id},
+			#{type},
+			#{people_num},
+			#{open_time},
+			#{close_time},
+	    	#{name},
+	    	#{img},
+	    	#{info},
+	    	#{address_1},
+	    	#{address_2},
+	    	#{x_geo},
+	    	#{y_geo},
+	    	#{price},
+	    	NOW()
+		)
+	</insert>
+	
+	<update id="host_gym_update">
+		UPDATE tbl_gym 
+		SET 
+			people_num = #{people_num},
+			`type` = #{type},
+			open_time= #{open_time},
+			close_time = #{close_time},
+			name = #{name},
+			info = #{info},
+			address_1 = #{address_1},
+			address_2 = #{address_2},
+			x_geo = #{x_geo},
+			y_geo = #{y_geo},
+			price = #{price}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="host_gym_delete">
+		UPDATE tbl_gym
+		SET state = 0
+		WHERE
+			id=#{id}
+	</update>
+	
+	<update id="host_gymImg_update">
+		UPDATE tbl_gym
+		SET
+			img = #{img}
+		WHERE 
+			id= #{id}
+	</update>
+	
+	<select id="gymList" resultType="com.gym.dto.HomeDTO">
+      SELECT 
+         g.*, u.nickname AS hostname, u.tel AS tel
+      FROM tbl_gym g
+      LEFT JOIN tbl_user u
+      ON 
+         g.host_user_id = u.id
+      WHERE 
+         g.state = 1
+   </select>
+   <select id="mygymList" resultType="com.gym.dto.HomeDTO">
+   		SELECT 
+         g.*, u.nickname AS hostname, u.tel AS tel
+      FROM tbl_gym g
+      LEFT JOIN tbl_user u
+      ON 
+         g.host_user_id = u.id
+      WHERE 
+         g.state = 1 AND g.host_user_id = #{id}
+   </select>
+	
+</mapper>

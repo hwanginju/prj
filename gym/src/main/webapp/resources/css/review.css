@@ -1,0 +1,27 @@
+@charset "UTF-8";
+
+.list-group{
+	margin:10px;
+}
+fieldset{
+    display: inline-block;
+    direction: rtl;
+    border:0;
+}
+fieldset legend{
+    text-align: right;
+}
+fieldset .pointstar{
+    display: none;
+}
+fieldset label{
+    font-size: 2em!important;
+    color: transparent;
+    text-shadow: 0 0 0 #f0f0f0;
+}
+fieldset .pointstar:checked ~ label{
+    text-shadow: 0 0 0 rgba(250, 208, 0, 0.99);
+}
+.list-group-item{
+	cursor:pointer;
+}

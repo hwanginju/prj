@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="member">
+	<!-- 사용자 로그인을 위해 tbl_user 라는 테이블에 email과 pwd값을 넣어서 데이터 조회해온 후 return -->
+	<select id="login_check" resultType="com.gym.dto.MemberDTO">
+		select *
+		from tbl_user
+		where 
+			email=#{email} AND isUse=1
+	</select>
+	
+	<!-- 호스트 회원가입 -->
+	<insert id="memberJoin">
+		INSERT INTO tbl_user
+			(email, pwd, nickname, tel, auth, created_at, address_1, address_2, businessReg, ceo, state, isUse)
+		VALUES
+			(#{email}, #{pwd}, #{nickName},#{tel}, #{auth}, NOW(), #{address_1}, #{address_2}, #{businessReg}, #{ceo}, #{state}, 1)
+	</insert>
+	
+	<!-- 게스트 회원가입 -->
+	<insert id="guestJoin">
+		INSERT INTO tbl_user
+			(email, pwd, nickname, tel, auth, created_at, isUse, state)
+		VALUES
+			(#{email}, #{pwd}, #{nickName}, #{tel}, #{auth}, NOW(), 1, 1)
+	</insert>
+	
+	<!-- 이메일 중복확인 -->
+	<select id="emailDup" resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user
+		WHERE
+			email=#{email}
+	</select>
+	
+	<!-- 상태별 호스트 리스트 -->
+	<select id="AllHostUserInfo_reject" resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user
+		WHERE 
+			auth='E200' AND state =0
+	</select>
+	
+	<select id="AllHostUserInfo_wait" resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user
+		WHERE 
+			auth='E200' AND state =2
+	</select>
+	
+	<select id="AllHostUserInfo"  resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user 
+		WHERE 
+			auth='E200' AND state=1
+	</select>
+	
+	<select id="AllGuestUserInfo" resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user
+		WHERE
+			auth ='E300'
+	</select>
+	
+	<select id="guestInfo" resultType="com.gym.dto.MemberDTO">
+		SELECT u.* FROM tbl_user u WHERE u.id = #{id}
+	</select>
+	
+	<update id="guestInfoEdit" >
+		UPDATE tbl_user
+		SET 
+			nickName = #{nickName},
+			tel =#{tel}
+		WHERE 
+			email = #{email}
+	</update>
+	
+	<update id="hostInfoEdit">
+		UPDATE tbl_user
+		SET 
+			address_1 = #{address_1},
+			address_2 = #{address_2},
+			tel = #{tel}
+		WHERE
+			id= #{id}
+	</update>
+	
+	<update id="memberPwdEdit">
+		UPDATE tbl_user
+		SET
+			pwd = #{pwd}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 호스트 정보 조회 -->
+	<select id="hostInfo" resultType="com.gym.dto.MemberDTO">
+		SELECT * FROM tbl_user WHERE id= #{id}
+	</select>
+	
+	<!-- 유저탈퇴 -->
+	<update id="member_delete">
+		UPDATE tbl_user
+		SET 
+			isUse = 0
+		WHERE id= #{id}
+	</update>
+	
+	<update id="hostStateEdit">
+		UPDATE tbl_user
+		SET 
+			state = #{state}
+		WHERE 
+			id = #{id}
+	</update>
+</mapper>

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.resv">
+
+   <select id ="resvList" resultType="com.gym.dto.ResvDTO">
+      SELECT 
+      	rsv.*,g.name AS gym_name, 
+      	IFNULL((SELECT r.id FROM tbl_review r WHERE r.resv_id = rsv.id AND r.user_id=#{id}), 0) AS reviewYN, 
+      	IFNULL((SELECT rs.id FROM tbl_resv rs WHERE
+      	<![CDATA[
+      		DATE_FORMAT(rs.resv_date, '%Y%m%d') > NOW() 
+      	]]>
+      	AND rs.id = rsv.id),0) AS resvDone
+      FROM tbl_resv rsv 
+      LEFT JOIN
+         tbl_gym g
+      ON
+         g.id = rsv.gym_id
+      WHERE
+         rsv.user_id= #{id}
+      ORDER BY
+         rsv.resv_date DESC;
+   </select>
+   
+   <insert id="resvInsert">
+      INSERT INTO tbl_resv
+         (user_id, gym_id, resv_date, resv_time,resv_time_2, pay_date, state, price)
+      VALUES
+         (#{user_id}, #{gym_id}, #{resv_date}, #{resv_time}, #{resv_time_2}, NOW(), 1, #{price})
+   </insert>
+   
+   <select id="hostresvList" resultType="com.gym.dto.ResvDTO">
+      SELECT g.name AS gym_name, u.nickname, u.tel, rsv.*
+      FROM 
+         tbl_resv rsv 
+      LEFT JOIN 
+         tbl_gym g
+      ON
+         rsv.gym_id = g.id
+      LEFT JOIN
+         tbl_user u
+      ON
+         rsv.user_id = u.id
+      WHERE
+         g.host_user_id = #{hid}
+      ORDER BY 
+      	rsv.resv_date DESC;
+   </select>
+   
+   <update id= "resvCancel">
+      UPDATE tbl_resv
+      SET 
+         state = 0
+      WHERE
+         id= #{id}
+   </update>
+   
+   <select id= "resv_dateChk" resultType="int">
+   		SELECT COUNT(*) FROM tbl_resv
+   		WHERE
+   			resv_date = #{resv_date}
+   			AND 
+   			resv_time = #{resv_time}
+   			AND
+   			gym_id = #{gym_id}
+   			AND
+   			state != 0
+   </select>
+   
+   <select id="resv_timeChk" resultType="com.gym.dto.ResvDTO">
+   		SELECT * FROM tbl_resv 
+   		WHERE 
+   			resv_date = #{resv_date} 
+   			AND
+   			gym_id = #{gym_id}
+   			AND
+   			state != 0
+   </select>
+   
+   <select id="hostIncome_years" resultType="com.gym.dto.IncomeDTO">
+		SELECT 
+			COUNT(r.id) AS cnt,
+			SUM(r.price) AS income, 
+			DATE_FORMAT(r.resv_date, '%Y') AS incomeY
+		FROM tbl_resv r 
+		LEFT JOIN tbl_gym g
+		ON r.gym_id=g.id
+		WHERE g.host_user_id = #{userId} AND r.state > 0
+		GROUP BY DATE_FORMAT(r.resv_date, '%Y')
+		ORDER BY DATE_FORMAT(r.resv_date, '%Y') DESC
+   </select>
+   
+	
+	<select id="hostIncome" resultType="com.gym.dto.IncomeDTO">
+		SELECT 
+			COUNT(r.id) AS cnt,
+			SUM(r.price) AS income, 
+			g.host_user_id AS host_id,
+			DATE_FORMAT(r.resv_date, '%Y') AS incomeY,
+			DATE_FORMAT(r.resv_date, '%m') AS incomeM 
+		FROM 
+			tbl_resv r 
+		LEFT JOIN 
+			tbl_gym g 
+		ON r.gym_id =g.id
+		WHERE 
+			g.host_user_id=#{host_id} AND DATE_FORMAT(r.resv_date, '%Y')=#{incomeY} AND r.state > 0
+		GROUP BY 
+			DATE_FORMAT(r.resv_date, '%Y'), DATE_FORMAT(r.resv_date, '%m')
+	</select>
+	
+	<select id="fee_years" resultType="com.gym.dto.IncomeDTO">
+		SELECT 
+			COUNT(r.id) AS cnt,
+			SUM(r.price)*0.1 AS income, 
+			DATE_FORMAT(r.resv_date, '%Y') AS incomeY
+		FROM tbl_resv r 
+		LEFT JOIN tbl_gym g
+		ON r.gym_id=g.id
+		WHERE r.state > 0
+		GROUP BY DATE_FORMAT(r.resv_date, '%Y')
+		ORDER BY DATE_FORMAT(r.resv_date, '%Y') DESC
+	</select>
+	
+	<select id="fee" resultType="com.gym.dto.IncomeDTO">
+		SELECT 
+			COUNT(r.id) AS cnt,
+			SUM(r.price)*0.1 AS income, 
+			DATE_FORMAT(r.resv_date, '%Y') AS incomeY,
+			DATE_FORMAT(r.resv_date, '%m') AS incomeM 
+		FROM 
+			tbl_resv r 
+		LEFT JOIN 
+			tbl_gym g 
+		ON r.gym_id =g.id
+		WHERE 
+			DATE_FORMAT(r.resv_date, '%Y')=#{incomeY} AND r.state > 0
+		GROUP BY 
+			DATE_FORMAT(r.resv_date, '%Y'), DATE_FORMAT(r.resv_date, '%m')
+	</select>
+	
+	<select id="feeList" resultType="com.gym.dto.IncomeDTO">
+		SELECT 
+			COUNT(r.id) AS cnt,
+			SUM(r.price)*0.1 AS income, 
+			g.host_user_id AS host_id,
+			u.nickname,
+			DATE_FORMAT(r.resv_date, '%Y') AS incomeY,
+			DATE_FORMAT(r.resv_date, '%m') AS incomeM 
+		FROM 
+			tbl_resv r 
+		LEFT JOIN 
+			tbl_gym g 
+		ON r.gym_id =g.id
+		LEFT JOIN tbl_user u ON g.host_user_id = u.id
+		WHERE 
+			DATE_FORMAT(resv_date, '%Y')=#{incomeY} AND r.state > 0
+		GROUP BY 
+			g.host_user_id, u.nickname
+	</select>
+   
+   
+   
+</mapper>
